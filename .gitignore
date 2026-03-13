@@ -1,0 +1,10 @@
+node_modules/
+.env
+.next/
+dist/
+coverage/
+DST_STORE
+.DS_Store
+data/*.secret.json
+
+/lib/generated/prisma

@@ -1,0 +1,19 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+model Room {
+  id           String   @id @default(cuid())
+  name         String
+  creator      String   @default("anon")
+  palette      Json     @default("[]")
+  imageUrl     String?
+  musicPreview String?
+  tags         Json     @default("[]")
+  createdAt    DateTime @default(now())
+  isPublic     Boolean  @default(true)
+}

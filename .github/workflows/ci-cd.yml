@@ -55,9 +55,9 @@ jobs:
         with:
           context: .
           push: true
-          tags: ghcr.io/redscall599/qrcode:latest
-          cache-from: type=registry,ref=ghcr.io/redscall599/qrcode:buildcache
-          cache-to: type=registry,ref=ghcr.io/redscall599/qrcode:buildcache,mode=max
+          tags: ghcr.io/wandr0057-art/qrcode:latest
+          cache-from: type=registry,ref=ghcr.io/wandr0057-art/qrcode:buildcache
+          cache-to: type=registry,ref=ghcr.io/wandr0057-art/qrcode:buildcache,mode=max
 
       - name: Pull image for testing
         run: docker compose pull app

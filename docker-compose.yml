@@ -1,17 +1,13 @@
-version: '3.9'
-
-
 services:
   app:
     build: .
     ports:
       - "3000:3000"
     environment:
-      - NODE_ENV=production
-    volumes:
-      - .:/app
-      - /app/node_modules
-      - /app/.next
+      NODE_ENV: production
+    # For production containers we do not mount source directories into /app,
+    # because this hides the built artifacts produced in the image.
+    # (Volumemounts are useful for local dev only.)
     restart: unless-stopped
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:3000/api/health || exit 1"]
@@ -19,6 +15,24 @@ services:
       timeout: 10s
       retries: 3
       start_period: 40s
+    command: ["node", "server.js"]
+
+  # Optional database service (uncomment if you need locally managed Postgres)
+  # db:
+  #   image: postgres:16-alpine
+  #   environment:
+  #     POSTGRES_DB: dreamstatic
+  #     POSTGRES_USER: dreamstatic
+  #     POSTGRES_PASSWORD: secret
+  #   volumes:
+  #     - postgres_data:/var/lib/postgresql/data
+  #   ports:
+  #     - "5432:5432"
+  #   restart: unless-stopped
+
+# volumes:
+#   postgres_data:
+
 
   # Optional: Add database service when Prisma uses external DB
   # db:

@@ -3,7 +3,7 @@ import { getRoomById, updateRoom, deleteRoom } from '@/lib/db'
 
 // GET /api/rooms/[id] - Get a single room by ID
 export async function GET(
-  request: NextRequest,
+  _request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
@@ -23,12 +23,12 @@ export async function GET(
 
 // PUT /api/rooms/[id] - Update a room
 export async function PUT(
-  request: NextRequest,
+  _request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     const { id } = await params
-    const body = await request.json()
+    const body = await _request.json()
     const updatedRoom = await updateRoom(id, body)
     
     if (!updatedRoom) {
@@ -44,7 +44,7 @@ export async function PUT(
 
 // DELETE /api/rooms/[id] - Delete a room
 export async function DELETE(
-  request: NextRequest,
+  _request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {

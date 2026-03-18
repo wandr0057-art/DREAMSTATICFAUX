@@ -19,7 +19,7 @@ async function read(): Promise<Room[]> {
   try {
     const txt = await readFile(DATA_PATH, 'utf-8')
     return JSON.parse(txt)
-  } catch (e) {
+  } catch {
     return []
   }
 }

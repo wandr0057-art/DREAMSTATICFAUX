@@ -30,7 +30,7 @@ const mockComments = [
 ]
 
 export default function RoomDetail() {
-  const params = useParams()
+  const _params = useParams()
   const [playing, setPlaying] = useState(false)
   const [comment, setComment] = useState('')
 

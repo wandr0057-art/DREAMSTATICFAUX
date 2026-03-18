@@ -50,7 +50,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Return user data (excluding password)
-    const { password: _, ...userWithoutPassword } = user
+    const { password: _password, ...userWithoutPassword } = user
     
     // Create response with user data
     const response = NextResponse.json({
@@ -93,7 +93,7 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ authenticated: false })
     }
 
-    const { password: _, ...userWithoutPassword } = user
+    const { password: _password, ...userWithoutPassword } = user
     return NextResponse.json({
       authenticated: true,
       user: userWithoutPassword,

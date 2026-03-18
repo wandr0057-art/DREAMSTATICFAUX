@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { getRooms, saveRoom } from '@/lib/db'
 
 // GET /api/rooms - Get all public rooms
-export async function GET(request: NextRequest) {
+export async function GET(_request: NextRequest) {
   try {
     const rooms = await getRooms()
     // Filter to only public rooms

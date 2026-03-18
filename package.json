@@ -7,7 +7,8 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "eslint . --ext .js,.jsx,.ts,.tsx"
+    "lint": "eslint . --ext .js,.jsx,.ts,.tsx",
+    "test": "echo \"No tests configured yet. Set up Jest or Vitest.\" && exit 0"
   },
   "keywords": [],
   "author": "",

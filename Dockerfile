@@ -1,74 +1,50 @@
-FROM node:20-alpine
+# syntax=docker/dockerfile:1
 
-# Install Prisma CLI
-RUN npm install -g prisma
+# Base image for building
+FROM node:20-alpine AS base
 
-WORKDIR /app
-
-# Copy package files
-COPY package*.json ./
-
-# Install dependencies
-RUN npm ci --only=production && npm cache clean --force
-
-# Copy source code
-COPY . .
-
-# Generate Prisma client
-RUN npx prisma generate
-
-# Build the app
-RUN npm run build
-
-# Expose port
-EXPOSE 3000
-
-# Healthcheck
-HEALTHCHECK --interval=30s --timeout=3s --start-period=5s --retries=3 \
-  CMD curl -f http://localhost:3000/api/health || exit 1
-
-# Start the app
-# Multi-stage for dev/prod
-FROM node:20-alpine as base
-
+# Ensure graceful execution with Alpine
 RUN apk add --no-cache libc6-compat
-RUN npm install -g prisma
 
 WORKDIR /app
 
-FROM base as deps
+# Prerequisites for Prisma and app tooling
+RUN npm install -g prisma
+
+# Install dependencies in separate stage for caching
+FROM base AS deps
 COPY package.json package-lock.json ./
 RUN npm ci
 
-FROM base as dev
-COPY --from=deps /app/node_modules ./node_modules
-CMD ["npm", "run", "dev"]
-
-FROM base as builder
+# Builder stage performs Prisma generation and Next.js production build
+FROM base AS builder
 COPY --from=deps /app/node_modules ./node_modules
 COPY prisma ./prisma/
 COPY . .
 RUN npx prisma generate
 RUN npm run build
 
-FROM node:20-alpine as runner
+# Production runtime stage
+FROM node:20-alpine AS runner
 WORKDIR /app
 
-ENV NODE_ENV production
+ENV NODE_ENV=production
+ENV PORT=3000
+ENV HOSTNAME=0.0.0.0
 
+# Ensure non-root user for security
 RUN addgroup --system --gid 1001 nodejs
-RUN adduser --system --uid 1001 nextjs
+RUN adduser --system --uid 1001 --ingroup nodejs nextjs
 
-COPY --from=builder /app/public ./public
-COPY --from=builder --chown=nextjs:nodejs /app/.next/standalone ./
-COPY --from=builder --chown=nextjs:nodejs /app/.next/static ./.next/static
-COPY --from=builder --chown=nextjs:nodejs /app/prisma ./prisma
+# Copy only needed artifacts from builder
+COPY --from=builder /app/.next/standalone .
+COPY --from=builder /app/.next/static ./.next/static
+COPY --from=builder /app/prisma ./prisma
 
 USER nextjs
 
 EXPOSE 3000
 
-ENV PORT 3000
-ENV HOSTNAME "0.0.0.0"
-
+# NOTE: For a Next.js standalone build, server.js is created by Next
 CMD ["node", "server.js"]
+

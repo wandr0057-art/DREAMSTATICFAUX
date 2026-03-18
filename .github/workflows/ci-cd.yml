@@ -44,4 +44,84 @@ jobs:
           host: ${{ secrets.EC2_HOST }}
           username: ${{ secrets.EC2_USER }}
           key: ${{ secrets.EC2_KEY }}
-          script: ${{secrets.EC2_PROJECT_PATH}}
+          script: |
+            # "set -e" means: stop immediately if any command fails.
+            # Without this, the script would keep running even after an error.
+            set -e
+
+            # ── Install Docker if it isn't on the server yet ───────────────
+            # "command -v docker" checks if docker is installed.
+            # "&> /dev/null" silences the output — we only care about success/fail.
+            if ! command -v docker &> /dev/null; then
+              echo "Docker not found — installing..."
+              # This is Docker's official one-line install script for Linux.
+              curl -fsSL https://get.docker.com | sh
+              # Add the current user to the "docker" group so they can run
+              # docker commands without needing "sudo" every time.
+              sudo usermod -aG docker $USER
+              # newgrp applies the new group to the current session.
+              newgrp docker
+            fi
+
+            # ── Clone the repo if this is the first deploy ─────────────────
+            # On the very first run the project folder won't exist yet.
+            # This clones it. On every run after, it already exists so we skip this.
+            if [ ! -d ${{ secrets.EC2_PROJECT_PATH }} ]; then
+              git clone https://github.com/wandr0057-art/DREAMSTATICFAUX ${{ secrets.EC2_PROJECT_PATH }}
+            fi
+
+            # ── Pull the latest code ───────────────────────────────────────
+            # Switch into the project folder and download the newest commits from main.
+            # This updates docker-compose.yml and any other config files.
+            cd ${{ secrets.EC2_PROJECT_PATH }} && git pull origin main
+
+            # ── Download the pre-built Docker image ───────────────────────
+            # The build-and-test job already built and pushed this image to GHCR.
+            # We just download the finished image here — much faster than building
+            # it from scratch on the EC2 server.
+            docker pull ghcr.io/redscall599/qrcode:latest
+
+            # ── Stop the currently running containers ─────────────────────
+            # We bring everything down before starting new containers so there
+            # are no conflicts with the old version still running.
+            docker compose down
+
+            # ── Write the .env file on EC2 ────────────────────────────────
+            # The .env file holds secrets the app needs at runtime.
+            # It's never committed to git (it's in .gitignore), so we create it
+            # here by writing the GitHub secrets directly into it.
+            echo "DATABASE_URL=${{ secrets.DATABASE_URL }}" > .env
+            echo "OPENAI_API_KEY=${{ secrets.OPENAI_API_KEY }}" >> .env
+            # SECURE_COOKIES=false because EC2 is served over HTTP (not HTTPS).
+            # Setting this to true would cause browsers to silently discard the
+            # session cookie, making login appear to succeed but never stick.
+            echo "SECURE_COOKIES=false" >> .env
+
+            # ── Run database migrations ────────────────────────────────────
+            # "docker compose run --rm" starts a fresh temporary container just
+            # to run this one command, then removes it when done.
+            # "--no-deps" means don't start any other services (like the db),
+            # just run the app container for this one migration command.
+            # The app connects directly to Neon (remote DB) via DATABASE_URL.
+            docker compose run --rm --no-deps app \
+              npx prisma migrate deploy --config prisma.config.ts
+
+            # ── Start the app ─────────────────────────────────────────────
+            # Start all services defined in docker-compose.yml in the background.
+            # The app is now live on port 3000 using the newly pulled image.
+            docker compose up -d
+
+            # ── Wait for the app to become healthy ────────────────────────
+            # The container starts immediately but the Next.js server inside it
+            # takes a few seconds to boot. This loop checks the Docker healthcheck
+            # every 3 seconds and waits up to 60 seconds before giving up.
+            echo "Waiting for app to become healthy..."
+            timeout 60 sh -c \
+              'until [ "$(docker inspect -f "{{.State.Health.Status}}" $(docker compose ps -q app))" = "healthy" ]; do
+                sleep 3
+              done' || echo "Health check timed out — container may still be starting"
+
+            # ── Clean up old images ────────────────────────────────────────
+            # Every time you deploy, the old Docker image becomes "dangling"
+            # (unused but still taking up disk space). This removes them.
+            docker image prune -f

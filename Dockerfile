@@ -40,6 +40,11 @@ RUN adduser --system --uid 1001 --ingroup nodejs nextjs
 COPY --from=builder /app/.next/standalone .
 COPY --from=builder /app/.next/static ./.next/static
 COPY --from=builder /app/prisma ./prisma
+COPY --from=builder /app/prisma.config.ts ./prisma.config.ts
+
+# Include deps from build stage for runtime administration commands
+# (e.g. npx prisma migrate deploy), but do not run them at container startup.
+COPY --from=deps /app/node_modules ./node_modules
 
 USER nextjs
 

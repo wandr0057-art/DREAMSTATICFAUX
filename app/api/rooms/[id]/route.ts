@@ -1,13 +1,14 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { getRoomById, updateRoom, deleteRoom } from '../../../lib/db'
+import { getRoomById, updateRoom, deleteRoom } from '@/lib/db'
 
 // GET /api/rooms/[id] - Get a single room by ID
 export async function GET(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const room = await getRoomById(params.id)
+    const { id } = await params
+    const room = await getRoomById(id)
     
     if (!room) {
       return NextResponse.json({ error: 'Room not found' }, { status: 404 })
@@ -23,11 +24,12 @@ export async function GET(
 // PUT /api/rooms/[id] - Update a room
 export async function PUT(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    const { id } = await params
     const body = await request.json()
-    const updatedRoom = await updateRoom(params.id, body)
+    const updatedRoom = await updateRoom(id, body)
     
     if (!updatedRoom) {
       return NextResponse.json({ error: 'Room not found' }, { status: 404 })
@@ -43,10 +45,11 @@ export async function PUT(
 // DELETE /api/rooms/[id] - Delete a room
 export async function DELETE(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const success = await deleteRoom(params.id)
+    const { id } = await params
+    const success = await deleteRoom(id)
     
     if (!success) {
       return NextResponse.json({ error: 'Room not found' }, { status: 404 })

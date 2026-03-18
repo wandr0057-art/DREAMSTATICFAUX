@@ -17,19 +17,25 @@
     "@neondatabase/serverless": "^1.0.2",
     "@prisma/adapter-neon": "^7.4.2",
     "@prisma/client": "^7.4.2",
-"next":"^14.2.15",
+    "next": "^16.1.7",
     "react": "18.2.0",
     "react-dom": "18.2.0",
     "ws": "^8.19.0"
   },
   "devDependencies": {
+    "@eslint/js": "^10.0.1",
+    "@next/eslint-plugin-next": "^16.1.7",
     "@types/node": "25.4.0",
     "@types/react": "19.2.14",
     "@types/ws": "^8.18.1",
     "autoprefixer": "^10.4.27",
+    "eslint": "^8.57.1",
+    "eslint-plugin-react": "^7.37.5",
+    "globals": "^17.4.0",
     "postcss": "^8.5.8",
-    "prisma": "^7.4.2",
+    "prisma": "^6.19.2",
     "tailwindcss": "^4.2.1",
-    "typescript": "5.9.3"
+    "typescript": "5.9.3",
+    "typescript-eslint": "^8.57.1"
   }
 }

@@ -55,9 +55,9 @@ jobs:
         with:
           context: .
           push: true
-          tags: ghcr.io/wandr0057-art/qrcode:latest
-          cache-from: type=registry,ref=ghcr.io/wandr0057-art/qrcode:buildcache
-          cache-to: type=registry,ref=ghcr.io/wandr0057-art/qrcode:buildcache,mode=max
+          tags: ghcr.io/wandr0057-art/dreamstaticfaux:latest
+          cache-from: type=registry,ref=ghcr.io/wandr0057-art/dreamstaticfaux:buildcache
+          cache-to: type=registry,ref=ghcr.io/wandr0057-art/dreamstaticfaux:buildcache,mode=max
 
       - name: Pull image for testing
         run: docker compose pull app
@@ -133,7 +133,7 @@ jobs:
             git pull origin main
 
             # Pull and run latest image from GHCR
-            docker pull ghcr.io/wandr0057/qrcode:latest
+            docker pull ghcr.io/wandr0057-art/dreamstaticfaux:latest
             docker compose down
 
             cat > .env <<EOF

@@ -12,7 +12,7 @@ services:
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:3000/api/health || exit 1"]
       interval: 30s
-      timeout: 20s
+      timeout: 15s
       retries: 3
       start_period: 40s
     command: ["node", "server.js"]
